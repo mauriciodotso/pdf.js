@@ -94,6 +94,9 @@ AnnotationFactory.prototype = /** @lends AnnotationFactory.prototype */ {
         var fieldType = Util.getInheritableProperty(dict, 'FT');
         if (isName(fieldType) && fieldType.name === 'Tx') {
           return new TextWidgetAnnotation(parameters);
+        } else if (isName(fieldType) && fieldType.name === 'Sig') {
+          warn('Sig field found')
+          return new SignatureWidgetAnnotation(parameters);
         }
         return new WidgetAnnotation(parameters);
 
@@ -597,10 +600,10 @@ var WidgetAnnotation = (function WidgetAnnotationClosure() {
     this.fieldResources = Util.getInheritableProperty(dict, 'DR') || Dict.empty;
 
     // Hide unsupported Widget signatures.
-    if (data.fieldType === 'Sig') {
-      warn('unimplemented annotation type: Widget signature');
-      this.setFlags(AnnotationFlag.HIDDEN);
-    }
+    // if (data.fieldType === 'Sig') {
+    //  warn('unimplemented annotation type: Widget signature');
+    //  this.setFlags(AnnotationFlag.HIDDEN);
+    //}
 
     // Building the full field name by collecting the field and
     // its ancestors 'T' data and joining them using '.'.
@@ -673,6 +676,72 @@ var TextWidgetAnnotation = (function TextWidgetAnnotationClosure() {
   });
 
   return TextWidgetAnnotation;
+})();
+
+/**
+* Implements the Signature type of Widget Annotation
+* @class
+* @public
+*/
+var SignatureWidgetAnnotation = (function SignatureWidgetAnnotationClosure() {
+  /**
+  * Implements the support for signature verification
+  * @class
+  */
+  var Signature = (function SignatureClosure(){
+    function Signature(params) {
+      var dict = params.dict;
+
+      this.data = {}
+      this.data.type = Util.getInheritableProperty(dict, 'Type');
+      this.data.filter = Util.getInheritableProperty(dict, 'Filter');
+      this.data.subfilter = Util.getInheritableProperty(dict, 'SubFilter');
+      this.data.contents = Util.getInheritableProperty(dict, 'Contents');
+      this.data.certs = Util.getInheritableProperty(dict, 'Cert');
+      this.data.byteRange = Util.getInheritableProperty(dict, 'ByteRange');
+      this.data.Reference = Util.getInheritableProperty(dict, 'Reference');
+      this.data.changes = Util.getInheritableProperty(dict, 'Changes');
+      this.data.name = Util.getInheritableProperty(dict, 'Name');
+      this.data.timeOfSigning = Util.getInheritableProperty(dict, 'M');
+      this.data.location = Util.getInheritableProperty(dict, 'Location');
+      this.data.reason = Util.getInheritableProperty(dict, 'Reason');
+      this.data.contactInfo = Util.getInheritableProperty(dict, 'ContactInfo');
+      this.data.handlerVersion = Util.getInheritableProperty(dict, 'R');
+      this.data.version = Util.getInheritableProperty(dict, 'V');
+      this.data.propBuild = Util.getInheritableProperty(dict, 'Prop_Build');
+      this.data.propAuthTime = Util.getInheritableProperty(dict, 'Prop_AuthTime');
+      this.data.propAuthType = Util.getInheritableProperty(dict, 'Prop_AuthType');
+    }
+
+    Signature.prototype = {
+
+      /**
+      * verifies the signature validity.
+      * @public
+      * @memberof Signature
+      */
+      verify: function Signature_verify() {
+        // TODO
+      }
+    }
+
+    return Signature;
+  })();
+
+  function SignatureWidgetAnnotation(params) {
+    WidgetAnnotation.call(this, params)
+
+    var dict = params.dict;
+
+    this.seedValue = Util.getInheritableProperty(dict, 'SV');
+    this.lock = Util.getInheritableProperty(dict, 'Lock');
+    this.data.fieldValue =  new Signature({dict: Util.getInheritableProperty(dict, 'V')});
+    console.log(this.data.fieldValue);
+  }
+
+  Util.inherit(SignatureWidgetAnnotation, WidgetAnnotation, {});
+
+  return SignatureWidgetAnnotation;
 })();
 
 var TextAnnotation = (function TextAnnotationClosure() {
